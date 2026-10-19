@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Studio — Modern & Custom QR Code Generator</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator Library CDN (qrcodejs) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        /* ==========================================================================
+           CSS VARIABLES & DESIGN SYSTEM (Light / Dark Themes)
+           ========================================================================== */
+        :root {
+            --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            
+            /* Light Theme Palette */
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-subtle: #f1f5f9;
+            --bg-input: #ffffff;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --primary-ring: rgba(79, 70, 229, 0.25);
+            
+            --accent: #06b6d4;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-full: 9999px;
+
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme Palette */
+            --bg-body: #0b0f17;
+            --bg-card: #151c28;
+            --bg-card-subtle: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --border-hover: #475569;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --primary-ring: rgba(99, 102, 241, 0.3);
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Reset & Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            background: none;
+        }
+
+        /* Container Limit */
+        .container {
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ==========================================================================
+           HEADER & NAVIGATION
+           ========================================================================== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(8px);
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .brand-logo i {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color var(--transition-fast);
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-full);
+            background-color: var(--bg-card-subtle);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        /* Mobile Nav Dropdown */
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            gap: 1rem;
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav .nav-link {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* ==========================================================================
+           HERO SECTION
+           ========================================================================== */
+        .hero-section {
+            padding: 4.5rem 0 3.5rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 0%, var(--primary-light) 0%, transparent 70%);
+        }
+
+        .hero-content {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--primary-ring);
+        }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            letter-spacing: -1px;
+        }
+
+        .hero-title span {
+            color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Primary & Secondary Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.75rem;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-card-subtle);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+        }
+
+        /* ==========================================================================
+           MAIN GENERATOR SECTION
+           ========================================================================== */
+        .generator-section {
+            padding: 2rem 0 5rem;
+        }
+
+        .generator-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Cards Style */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .card-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* Type Tabs Grid */
+        .type-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1.75rem;
+            background-color: var(--bg-card-subtle);
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+        }
+
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.65rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--bg-card);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Forms & Controls */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-ring);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* Customization Accordion/Section */
+        .customization-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .section-title-sm {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preset-colors {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: transform var(--transition-fast);
+        }
+
+        .preset-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .color-inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.6rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .color-picker-wrapper input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .color-val-text {
+            font-size: 0.85rem;
+            font-family: monospace;
+            color: var(--text-secondary);
+        }
+
+        /* Preview Right Side Sticky Panel */
+        .preview-sticky {
+            position: sticky;
+            top: 96px;
+        }
+
+        .preview-card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-frame {
+            width: 100%;
+            max-width: 260px;
+            aspect-ratio: 1/1;
+            background-color: #ffffff;
+            border: 1px dashed var(--border-hover);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.25rem 0;
+            padding: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-frame img, .qr-frame canvas {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        .qr-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-muted);
+            gap: 0.5rem;
+        }
+
+        .qr-empty-state i {
+            font-size: 2.5rem;
+            opacity: 0.5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-full);
+            background-color: var(--bg-card-subtle);
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-actions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-group-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        /* ==========================================================================
+           HISTORY SECTION
+           ========================================================================== */
+        .history-section {
+            padding: 2rem 0 4rem;
+            background-color: var(--bg-card-subtle);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .history-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .history-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-type-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .history-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .history-content-text {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-family: monospace;
+            background-color: var(--bg-input);
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .history-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        /* ==========================================================================
+           FEATURES SECTION
+           ========================================================================== */
+        .features-section {
+            padding: 5rem 0;
+        }
+
+        .section-header-center {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 3.5rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            transition: all var(--transition-normal);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            background-color: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ==========================================================================
+           FOOTER
+           ========================================================================== */
+        .footer {
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 0 2rem;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-brand p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            max-width: 320px;
+        }
+
+        .footer-col-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ==========================================================================
+           TOAST NOTIFICATIONS
+           ========================================================================== */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            min-width: 280px;
+            max-width: 360px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+
+        .toast i {
+            font-size: 1.1rem;
+        }
+
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--warning); }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
+
+        /* ==========================================================================
+           RESPONSIVE MEDIA QUERIES
+           ========================================================================== */
+        @media (max-width: 992px) {
+            .generator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-sticky {
+                position: static;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .type-tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .color-inputs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="brand-logo">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>QR Studio</span>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="#generator" class="nav-link active">Generator</a>
+                <a href="#history" class="nav-link">History</a>
+                <a href="#features" class="nav-link">Features</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Toggle menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileNav" class="mobile-nav">
+            <a href="#generator" class="nav-link">Generator</a>
+            <a href="#history" class="nav-link">History</a>
+            <a href="#features" class="nav-link">Features</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <div class="hero-badge">
+                <i class="fa-solid fa-bolt"></i> 100% Free & Browser-Based
+            </div>
+            <h1 class="hero-title">Create Custom <span>QR Codes</span> in Seconds</h1>
+            <p class="hero-subtitle">Generate, style, and download high-resolution QR codes for links, Wi-Fi credentials, text, and contact info. No signup required.</p>
+            <div class="hero-cta">
+                <a href="#generator" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate QR Code</a>
+                <a href="#features" class="btn btn-secondary"><i class="fa-solid fa-compass"></i> Explore Features</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- GENERATOR SECTION -->
+    <section id="generator" class="generator-section">
+        <div class="container">
+            <div class="generator-grid">
+                
+                <!-- LEFT CONFIGURATION CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Configuration</h2>
+                    </div>
+
+                    <!-- Type Selector Tabs -->
+                    <div class="type-tabs" role="tablist">
+                        <button class="tab-btn active" data-type="url"><i class="fa-solid fa-link"></i> URL</button>
+                        <button class="tab-btn" data-type="text"><i class="fa-solid fa-font"></i> Text</button>
+                        <button class="tab-btn" data-type="wifi"><i class="fa-solid fa-wifi"></i> Wi-Fi</button>
+                        <button class="tab-btn" data-type="email"><i class="fa-solid fa-envelope"></i> Email</button>
+                        <button class="tab-btn" data-type="phone"><i class="fa-solid fa-phone"></i> Phone</button>
+                        <button class="tab-btn" data-type="sms"><i class="fa-solid fa-comment-sms"></i> SMS</button>
+                    </div>
+
+                    <!-- Dynamic Dynamic Content Form -->
+                    <form id="qrForm" onsubmit="event.preventDefault();">
+                        
+                        <!-- URL Form -->
+                        <div id="form-url" class="form-type-group">
+                            <div class="form-group">
+                                <label for="urlInput" class="form-label">Website URL</label>
+                                <input type="url" id="urlInput" class="form-control" placeholder="https://example.com" value="https://example.com" required>
+                            </div>
+                        </div>
+
+                        <!-- Plain Text Form -->
+                        <div id="form-text" class="form-type-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="textInput" class="form-label">Plain Text Content</label>
+                                <textarea id="textInput" class="form-control" placeholder="Enter any message or notes..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Wi-Fi Form -->
+                        <div id="form-wifi" class="form-type-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="wifiSsid" class="form-label">Network Name (SSID)</label>
+                                <input type="text" id="wifiSsid" class="form-control" placeholder="My Home Network">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="wifiPassword" class="form-label">Password</label>
+                                    <input type="password" id="wifiPassword" class="form-control" placeholder="Network password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="wifiEncryption" class="form-label">Security</label>
+                                    <select id="wifiEncryption" class="form-control">
+                                        <option value="WPA">WPA / WPA2</option>
+                                        <option value="WEP">WEP</option>
+                                        <option value="nopass">None (Open)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <label class="checkbox-group">
+                                <input type="checkbox" id="wifiHidden">
+                                <span>Hidden Network</span>
+                            </label>
+                        </div>
+
+                        <!-- Email Form -->
+                        <div id="form-email" class="form-type-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="emailTarget" class="form-label">Recipient Email</label>
+                                <input type="email" id="emailTarget" class="form-control" placeholder="user@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="emailSubject" class="form-label">Subject</label>
+                                <input type="text" id="emailSubject" class="form-control" placeholder="Inquiry about services">
+                            </div>
+                            <div class="form-group">
+                                <label for="emailBody" class="form-label">Message Body</label>
+                                <textarea id="emailBody" class="form-control" placeholder="Hello, I wanted to reach out..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Phone Form -->
+                        <div id="form-phone" class="form-type-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="phoneInput" class="form-label">Phone Number</label>
+                                <input type="tel" id="phoneInput" class="form-control" placeholder="+1234567890">
+                            </div>
+                        </div>
+
+                        <!-- SMS Form -->
+                        <div id="form-sms" class="form-type-group" style="display: none;">
+                            <div class="form-group">
+                                <label for="smsPhone" class="form-label">Phone Number</label>
+                                <input type="tel" id="smsPhone" class="form-control" placeholder="+1234567890">
+                            </div>
+                            <div class="form-group">
+                                <label for="smsMessage" class="form-label">Message</label>
+                                <textarea id="smsMessage" class="form-control" placeholder="Your SMS message content..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- CUSTOMIZATION PANEL -->
+                        <div class="customization-section">
+                            <div class="section-title-sm">
+                                <span><i class="fa-solid fa-palette"></i> Style & Customization</span>
+                                <button type="button" id="resetCustomBtn" class="btn-link" style="font-size: 0.8rem; color: var(--primary);">Reset Default</button>
+                            </div>
+
+                            <!-- Color Presets -->
+                            <div class="preset-colors">
+                                <div class="preset-btn" style="background: #000000;" data-fg="#000000" data-bg="#ffffff" title="Classic Black"></div>
+                                <div class="preset-btn" style="background: #4f46e5;" data-fg="#4f46e5" data-bg="#ffffff" title="Indigo Accent"></div>
+                                <div class="preset-btn" style="background: #0284c7;" data-fg="#0284c7" data-bg="#f0f9ff" title="Ocean Blue"></div>
+                                <div class="preset-btn" style="background: #059669;" data-fg="#059669" data-bg="#ecfdf5" title="Emerald Green"></div>
+                                <div class="preset-btn" style="background: #dc2626;" data-fg="#dc2626" data-bg="#fef2f2" title="Crimson Red"></div>
+                                <div class="preset-btn" style="background: #111827;" data-fg="#f9fafb" data-bg="#111827" title="Dark Mode"></div>
+                            </div>
+
+                            <!-- Colors Grid -->
+                            <div class="color-inputs-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Foreground Color</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" id="fgColorInput" value="#000000">
+                                        <span id="fgHexVal" class="color-val-text">#000000</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Background Color</label>
+                                    <div class="color-picker-wrapper">
+                                        <input type="color" id="bgColorInput" value="#ffffff">
+                                        <span id="bgHexVal" class="color-val-text">#ffffff</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Size & Error Correction -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sizeSelect" class="form-label">Size (px)</label>
+                                    <select id="sizeSelect" class="form-control">
+                                        <option value="180">180 x 180</option>
+                                        <option value="250" selected>250 x 250</option>
+                                        <option value="350">350 x 350</option>
+                                        <option value="500">500 x 500</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="correctionSelect" class="form-label">Error Correction</label>
+                                    <select id="correctionSelect" class="form-control">
+                                        <option value="L">Low (7%)</option>
+                                        <option value="M" selected>Medium (15%)</option>
+                                        <option value="Q">Quartile (25%)</option>
+                                        <option value="H">High (30%)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT PREVIEW CARD -->
+                <div class="preview-sticky">
+                    <div class="card preview-card">
+                        <span class="status-badge" id="typeBadge">URL</span>
+                        <h3 class="card-title" style="font-size: 1.1rem;">Live QR Code</h3>
+
+                        <div class="qr-frame" id="qrFrame">
+                            <div id="qrcode"></div>
+                        </div>
+
+                        <p id="qrInfoText" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Ready for download</p>
+
+                        <div class="preview-actions">
+                            <button id="downloadPngBtn" class="btn btn-primary" style="width: 100%;">
+                                <i class="fa-solid fa-download"></i> Download PNG
+                            </button>
+                            <div class="btn-group-row">
+                                <button id="copyContentBtn" class="btn btn-secondary">
+                                    <i class="fa-regular fa-copy"></i> Copy Content
+                                </button>
+                                <button id="resetAllBtn" class="btn btn-secondary" style="color: var(--danger);">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- RECENT HISTORY SECTION -->
+    <section id="history" class="history-section">
+        <div class="container">
+            <div class="history-header">
+                <div>
+                    <h2 class="section-title" style="font-size: 1.5rem;">Recent History</h2>
+                    <p class="section-desc">Quickly regenerate or review your recent QR codes</p>
+                </div>
+                <button id="clearHistoryBtn" class="btn btn-secondary btn-sm" style="color: var(--danger);">
+                    <i class="fa-solid fa-trash-can"></i> Clear History
+                </button>
+            </div>
+
+            <div id="historyGrid" class="history-grid">
+                <!-- History cards will render dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="section-header-center">
+                <h2 class="section-title">Designed for Modern Workflows</h2>
+                <p class="section-desc">Powerful features tailored for personal and professional QR code creation.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3 class="feature-title">Instant Live Generation</h3>
+                    <p class="feature-text">Updates in real time as you type. Real-time dynamic visual previews with zero waiting time.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-paint-brush"></i></div>
+                    <h3 class="feature-title">Custom Styling</h3>
+                    <p class="feature-text">Full control over foreground and background colors, sizing, and error correction levels.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3 class="feature-title">Client-Side Privacy</h3>
+                    <p class="feature-text">Your content stays local. QR codes are rendered straight in your browser window without remote database storage.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <h3 class="feature-title">Multiple Content Types</h3>
+                    <p class="feature-text">Support for URLs, Wi-Fi credentials, raw text, emails, direct phone numbers, and pre-formatted SMS.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h3 class="feature-title">Browser History</h3>
+                    <p class="feature-text">Automatically preserves your latest generated QR codes using local storage so you never lose track.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                    <h3 class="feature-title">Mobile Ready</h3>
+                    <p class="feature-text">Clean adaptive design that works smoothly across desktop computers, tablets, and mobile smartphones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="brand-logo">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>QR Studio</span>
+                    </a>
+                    <p>Free, fast, and secure browser-based QR Code Generator for everyday links, wifi connection sharing, and messaging.</p>
+                </div>
+                <div>
+                    <h4 class="footer-col-title">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="#generator">Generator</a></li>
+                        <li><a href="#history">Recent History</a></li>
+                        <li><a href="#features">Features</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-col-title">QR Types</h4>
+                    <ul class="footer-links">
+                        <li><a href="#generator">Website URL</a></li>
+                        <li><a href="#generator">Wi-Fi Credentials</a></li>
+                        <li><a href="#generator">Email & Phone</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 QR Studio. Built with Vanilla JavaScript & Modern HTML/CSS.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==========================================================================
+       VANILLA JAVASCRIPT LOGIC
+       ========================================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof QRCode === 'undefined') {
+                document.getElementById('qrInfoText').textContent =
+                    'QR library failed to load. Check your connection and reload.';
+                console.error('QR Code library is unavailable.');
+                return;
+            }
+
+            function loadHistory() {
+                try {
+                    const history = JSON.parse(localStorage.getItem('qr_studio_history') || '[]');
+                    return Array.isArray(history)
+                        ? history.filter(item =>
+                            item &&
+                            typeof item.id === 'number' &&
+                            typeof item.type === 'string' &&
+                            typeof item.content === 'string' &&
+                            typeof item.timestamp === 'string'
+                        )
+                        : [];
+                } catch (error) {
+                    console.error('Unable to load QR code history.', error);
+                    return [];
+                }
+            }
+
+            // State Storage
+            const state = {
+                currentType: 'url',
+                fgColor: '#000000',
+                bgColor: '#ffffff',
+                size: 250,
+                correctLevel: QRCode.CorrectLevel.M,
+                lastFormattedString: '',
+                history: loadHistory()
+            };
+
+            // DOM Elements
+            const qrcodeContainer = document.getElementById('qrcode');
+            const typeBadge = document.getElementById('typeBadge');
+            const qrInfoText = document.getElementById('qrInfoText');
+            const fgColorInput = document.getElementById('fgColorInput');
+            const bgColorInput = document.getElementById('bgColorInput');
+            const fgHexVal = document.getElementById('fgHexVal');
+            const bgHexVal = document.getElementById('bgHexVal');
+            const sizeSelect = document.getElementById('sizeSelect');
+            const correctionSelect = document.getElementById('correctionSelect');
+            const historyGrid = document.getElementById('historyGrid');
+            const toastContainer = document.getElementById('toastContainer');
+
+            let qrCodeInstance = null;
+
+            // ------------------------------------------------------------------
+            // 1. Toast Notification Handler
+            // ------------------------------------------------------------------
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                let iconClass = 'fa-circle-info';
+                if (type === 'success') iconClass = 'fa-circle-check';
+                if (type === 'error') iconClass = 'fa-circle-exclamation';
+                if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+
+                toast.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${message}</span>`;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // ------------------------------------------------------------------
+            // 2. Theme Toggle Controller
+            // ------------------------------------------------------------------
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const savedTheme = localStorage.getItem('qr_studio_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+
+            themeToggleBtn.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('qr_studio_theme', next);
+                updateThemeIcon(next);
+            });
+
+            function updateThemeIcon(theme) {
+                themeToggleBtn.innerHTML = theme === 'light' 
+                    ? '<i class="fa-solid fa-moon"></i>' 
+                    : '<i class="fa-solid fa-sun"></i>';
+            }
+
+            // Mobile Navigation Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileNav = document.getElementById('mobileNav');
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileNav.classList.toggle('open');
+            });
+
+            // ------------------------------------------------------------------
+            // 3. Type Switcher Logic
+            // ------------------------------------------------------------------
+            const tabButtons = document.querySelectorAll('.type-tabs .tab-btn');
+            const formGroups = document.querySelectorAll('.form-type-group');
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.getAttribute('data-type');
+                    state.currentType = type;
+
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    typeBadge.textContent = type.toUpperCase();
+
+                    formGroups.forEach(group => {
+                        group.style.display = group.id === `form-${type}` ? 'block' : 'none';
+                    });
+
+                    generateQRCode();
+                });
+            });
+
+            // ------------------------------------------------------------------
+            // 4. Input Payload Formatter
+            // ------------------------------------------------------------------
+            function getFormattedPayload() {
+                switch (state.currentType) {
+                    case 'url': {
+                        let url = document.getElementById('urlInput').value.trim();
+                        if (url && !/^https?:\/\//i.test(url)) {
+                            url = 'https://' + url;
+                        }
+                        return url;
+                    }
+                    case 'text': {
+                        return document.getElementById('textInput').value.trim();
+                    }
+                    case 'wifi': {
+                        const ssid = document.getElementById('wifiSsid').value.trim();
+                        const pass = document.getElementById('wifiPassword').value;
+                        const enc = document.getElementById('wifiEncryption').value;
+                        const hidden = document.getElementById('wifiHidden').checked;
+                        if (!ssid) return '';
+                        return `WIFI:S:${escapeWifiValue(ssid)};T:${enc};P:${escapeWifiValue(pass)};H:${hidden ? 'true' : 'false'};;`;
+                    }
+                    case 'email': {
+                        const email = document.getElementById('emailTarget').value.trim();
+                        const subject = document.getElementById('emailSubject').value.trim();
+                        const body = document.getElementById('emailBody').value.trim();
+                        if (!email) return '';
+                        let mailto = `mailto:${email}`;
+                        const params = [];
+                        if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+                        if (body) params.push(`body=${encodeURIComponent(body)}`);
+                        if (params.length) mailto += '?' + params.join('&');
+                        return mailto;
+                    }
+                    case 'phone': {
+                        const phone = document.getElementById('phoneInput').value.trim();
+                        return phone ? `tel:${phone}` : '';
+                    }
+                    case 'sms': {
+                        const phone = document.getElementById('smsPhone').value.trim();
+                        const msg = document.getElementById('smsMessage').value.trim();
+                        if (!phone) return '';
+                        return msg ? `sms:${phone}?body=${encodeURIComponent(msg)}` : `sms:${phone}`;
+                    }
+                    default:
+                        return '';
+                }
+            }
+
+            function escapeWifiValue(value) {
+                return value.replace(/([\\;,:])/g, '\\$1');
+            }
+
+            // ------------------------------------------------------------------
+            // 5. QR Code Render Engine
+            // ------------------------------------------------------------------
+            function generateQRCode(addToHistory = true) {
+                const payload = getFormattedPayload();
+                qrcodeContainer.innerHTML = '';
+
+                if (!payload) {
+                    state.lastFormattedString = '';
+                    qrInfoText.textContent = 'Please fill out required fields';
+                    qrcodeContainer.innerHTML = `
+                        <div class="qr-empty-state">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <span style="font-size: 0.8rem;">Awaiting valid input...</span>
+                        </div>`;
+                    return;
+                }
+
+                state.lastFormattedString = payload;
+
+                try {
+                    qrCodeInstance = new QRCode(qrcodeContainer, {
+                        text: payload,
+                        width: parseInt(state.size, 10),
+                        height: parseInt(state.size, 10),
+                        colorDark: state.fgColor,
+                        colorLight: state.bgColor,
+                        correctLevel: state.correctLevel
+                    });
+
+                    qrInfoText.textContent = `Size: ${state.size}x${state.size}px`;
+
+                    if (addToHistory) {
+                        saveToHistory(state.currentType, payload);
+                    }
+                } catch (e) {
+                    state.lastFormattedString = '';
+                    qrInfoText.textContent = 'Error rendering QR Code';
+                    console.error('Unable to render QR code.', e);
+                }
+            }
+
+            // Attach input event listeners for live updating
+            document.querySelectorAll('#qrForm input, #qrForm textarea, #qrForm select').forEach(element => {
+                element.addEventListener('input', () => generateQRCode(false));
+                element.addEventListener('change', () => generateQRCode(true));
+            });
+
+            // ------------------------------------------------------------------
+            // 6. Customization Controls Logic
+            // ------------------------------------------------------------------
+            fgColorInput.addEventListener('input', (e) => {
+                state.fgColor = e.target.value;
+                fgHexVal.textContent = state.fgColor;
+                generateQRCode(false);
+            });
+
+            bgColorInput.addEventListener('input', (e) => {
+                state.bgColor = e.target.value;
+                bgHexVal.textContent = state.bgColor;
+                generateQRCode(false);
+            });
+
+            sizeSelect.addEventListener('change', (e) => {
+                state.size = parseInt(e.target.value, 10);
+                generateQRCode(false);
+            });
+
+            correctionSelect.addEventListener('change', (e) => {
+                const levelMap = {
+                    'L': QRCode.CorrectLevel.L,
+                    'M': QRCode.CorrectLevel.M,
+                    'Q': QRCode.CorrectLevel.Q,
+                    'H': QRCode.CorrectLevel.H
+                };
+                state.correctLevel = levelMap[e.target.value] || QRCode.CorrectLevel.M;
+                generateQRCode(false);
+            });
+
+            // Preset Buttons Handler
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const fg = btn.getAttribute('data-fg');
+                    const bg = btn.getAttribute('data-bg');
+
+                    state.fgColor = fg;
+                    state.bgColor = bg;
+
+                    fgColorInput.value = fg;
+                    bgColorInput.value = bg;
+                    fgHexVal.textContent = fg;
+                    bgHexVal.textContent = bg;
+
+                    generateQRCode(false);
+                    showToast('Color preset applied!', 'info');
+                });
+            });
+
+            // Reset Customizations
+            document.getElementById('resetCustomBtn').addEventListener('click', () => {
+                state.fgColor = '#000000';
+                state.bgColor = '#ffffff';
+                state.size = 250;
+                state.correctLevel = QRCode.CorrectLevel.M;
+
+                fgColorInput.value = '#000000';
+                bgColorInput.value = '#ffffff';
+                fgHexVal.textContent = '#000000';
+                bgHexVal.textContent = '#ffffff';
+                sizeSelect.value = '250';
+                correctionSelect.value = 'M';
+
+                generateQRCode(false);
+                showToast('Customizations reset to defaults', 'info');
+            });
+
+            // Reset All Form Fields
+            document.getElementById('resetAllBtn').addEventListener('click', () => {
+                document.getElementById('qrForm').reset();
+                document.getElementById('urlInput').value = '';
+                document.getElementById('resetCustomBtn').click();
+                generateQRCode(false);
+                showToast('Generator cleared', 'warning');
+            });
+
+            // ------------------------------------------------------------------
+            // 7. Actions: Download & Copy
+            // ------------------------------------------------------------------
+            document.getElementById('downloadPngBtn').addEventListener('click', () => {
+                const img = qrcodeContainer.querySelector('img');
+                const canvas = qrcodeContainer.querySelector('canvas');
+
+                if (!state.lastFormattedString) {
+                    showToast('No valid QR code available to download', 'error');
+                    return;
+                }
+
+                let imageSrc = '';
+                if (canvas) {
+                    imageSrc = canvas.toDataURL('image/png');
+                } else if (img && img.src) {
+                    imageSrc = img.src;
+                }
+
+                if (imageSrc) {
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = imageSrc;
+                    downloadLink.download = `QR_Studio_${Date.now()}.png`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    showToast('QR Code downloaded successfully!', 'success');
+                } else {
+                    showToast('Failed to download image', 'error');
+                }
+            });
+
+            document.getElementById('copyContentBtn').addEventListener('click', () => {
+                if (!state.lastFormattedString) {
+                    showToast('Nothing to copy', 'error');
+                    return;
+                }
+
+                // Fallback copy using text area for compatibility
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = state.lastFormattedString;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('QR Content copied to clipboard!', 'success');
+                } catch (err) {
+                    showToast('Failed to copy content', 'error');
+                }
+                document.body.removeChild(tempTextArea);
+            });
+
+            // ------------------------------------------------------------------
+            // 8. History Storage Engine (localStorage)
+            // ------------------------------------------------------------------
+            function saveToHistory(type, content) {
+                if (!content) return;
+
+                // Avoid duplicating the immediate top entry
+                if (state.history.length > 0 &&
+                    state.history[0].type === type.toUpperCase() &&
+                    state.history[0].content === content) {
+                    return;
+                }
+
+                const newItem = {
+                    id: Date.now(),
+                    type: type.toUpperCase(),
+                    content: content,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    formData: getCurrentFormData()
+                };
+
+                state.history.unshift(newItem);
+                if (state.history.length > 10) state.history.pop(); // Keep last 10 entries
+
+                localStorage.setItem('qr_studio_history', JSON.stringify(state.history));
+                renderHistoryUI();
+            }
+
+            function renderHistoryUI() {
+                if (state.history.length === 0) {
+                    historyGrid.innerHTML = `
+                        <div class="history-empty">
+                            <i class="fa-regular fa-folder-open" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <p>No recent QR code history found.</p>
+                        </div>`;
+                    return;
+                }
+
+                historyGrid.innerHTML = state.history.map(item => `
+                    <div class="history-card" data-id="${item.id}">
+                        <div class="history-top">
+                            <span class="history-type-badge">${item.type}</span>
+                            <span class="history-time">${item.timestamp}</span>
+                        </div>
+                        <div class="history-content-text">${escapeHtml(item.content)}</div>
+                        <div class="history-actions">
+                            <button class="btn btn-secondary btn-sm load-hist-btn" data-id="${item.id}" style="flex: 1;">
+                                <i class="fa-solid fa-arrows-rotate"></i> Load
+                            </button>
+                            <button class="btn btn-secondary btn-sm delete-hist-btn" data-id="${item.id}" style="color: var(--danger);">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Attach Events to History Buttons
+                document.querySelectorAll('.load-hist-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = Number(btn.getAttribute('data-id'));
+                        const item = state.history.find(historyItem => historyItem.id === id);
+                        if (!item) {
+                            showToast('This history item is no longer available', 'error');
+                            return;
+                        }
+
+                        let type = item.type.toLowerCase();
+                        const formData = item.formData;
+                        if (formData && typeof formData === 'object') {
+                            if (type === 'url') document.getElementById('urlInput').value = formData.url || '';
+                            else if (type === 'text') document.getElementById('textInput').value = formData.text || '';
+                            else if (type === 'wifi') {
+                                document.getElementById('wifiSsid').value = formData.ssid || '';
+                                document.getElementById('wifiPassword').value = formData.password || '';
+                                document.getElementById('wifiEncryption').value = formData.encryption || 'WPA';
+                                document.getElementById('wifiHidden').checked = Boolean(formData.hidden);
+                            } else if (type === 'email') {
+                                document.getElementById('emailTarget').value = formData.email || '';
+                                document.getElementById('emailSubject').value = formData.subject || '';
+                                document.getElementById('emailBody').value = formData.body || '';
+                            } else if (type === 'phone') {
+                                document.getElementById('phoneInput').value = formData.phone || '';
+                            } else if (type === 'sms') {
+                                document.getElementById('smsPhone').value = formData.phone || '';
+                                document.getElementById('smsMessage').value = formData.message || '';
+                            } else {
+                                type = 'text';
+                                document.getElementById('textInput').value = item.content;
+                            }
+                        } else if (type === 'url') {
+                            document.getElementById('urlInput').value = item.content;
+                        } else {
+                            // Older history entries only stored the encoded payload.
+                            type = 'text';
+                            document.getElementById('textInput').value = item.content;
+                        }
+
+                        const targetTab = document.querySelector(`.tab-btn[data-type="${type}"]`);
+                        if (targetTab) targetTab.click();
+                        window.scrollTo({ top: document.getElementById('generator').offsetTop - 100, behavior: 'smooth' });
+                        showToast('Historical QR code loaded!', 'info');
+                    });
+                });
+
+                document.querySelectorAll('.delete-hist-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = parseInt(btn.getAttribute('data-id'), 10);
+                        state.history = state.history.filter(item => item.id !== id);
+                        localStorage.setItem('qr_studio_history', JSON.stringify(state.history));
+                        renderHistoryUI();
+                        showToast('Item removed from history', 'warning');
+                    });
+                });
+            }
+
+            document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+                if (state.history.length === 0) return;
+                state.history = [];
+                localStorage.removeItem('qr_studio_history');
+                renderHistoryUI();
+                showToast('History cleared', 'warning');
+            });
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            function getCurrentFormData() {
+                switch (state.currentType) {
+                    case 'url':
+                        return { url: document.getElementById('urlInput').value };
+                    case 'text':
+                        return { text: document.getElementById('textInput').value };
+                    case 'wifi':
+                        return {
+                            ssid: document.getElementById('wifiSsid').value,
+                            password: document.getElementById('wifiPassword').value,
+                            encryption: document.getElementById('wifiEncryption').value,
+                            hidden: document.getElementById('wifiHidden').checked
+                        };
+                    case 'email':
+                        return {
+                            email: document.getElementById('emailTarget').value,
+                            subject: document.getElementById('emailSubject').value,
+                            body: document.getElementById('emailBody').value
+                        };
+                    case 'phone':
+                        return { phone: document.getElementById('phoneInput').value };
+                    case 'sms':
+                        return {
+                            phone: document.getElementById('smsPhone').value,
+                            message: document.getElementById('smsMessage').value
+                        };
+                    default:
+                        return {};
+                }
+            }
+
+            // Initial Kickoff
+            renderHistoryUI();
+            generateQRCode(true);
+        });
+    </script>
+</body>
+</html>
+
